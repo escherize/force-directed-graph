@@ -18,8 +18,8 @@ click on the background to pan!
 left ctrl lets you pan or drag faster!
 
 """
-import pygame
 from pygame.locals import *
+import pygame
 import random
 import math
 
@@ -33,10 +33,10 @@ dampen = 0.01
 
 """the rate at which the dampening increases after
     adding an edge or a node, or calling 0 means none"""
-dampen_decrease = .00
+dampen_decrease = 0.001
 
 """pad_scaler: 4 is big, 2.5 is cozy"""
-pad_scaler = 2.5
+pad_scaler = 3
 
 """can increase the visual size of nodes and edges"""
 view_size_scaler = 1
@@ -110,7 +110,6 @@ class GraphPlotPanel():
         self.V.append(v2)
         self.E.append(e)
 
-
     def add_touching_edges(self):
         # adds an edge between overlapping edges
         touching = self.findvertex(v.x, v.y)
@@ -128,7 +127,7 @@ class GraphPlotPanel():
         self._spring(edge.s, edge.t, edge.weight, edge=True)
 
     def _spring(self, v1, v2, weight, edge):
-        pad = 4 * ((v1.size + v2.size) + int(.5*len(self.V)))
+        pad = 4 * ((v1.size + v2.size) + int(.5 * len(self.V)))
         x_diff = v1.x - v2.x
         y_diff = v1.y - v2.y
         angle = math.atan2(y_diff, x_diff)
@@ -306,6 +305,63 @@ def launch_graph_plot():
     for y in range(number_of_edges):
         graph_plot.add_edge()
     graph_plot.run()
+
+
+class Edge():
+    def __init__(self, s, t, weight):
+        self.s = s
+        self.t = t
+        s.degree += 1
+        t.degree += 1
+        self.weight = 30
+        self.color = edge_color
+
+    def __str__(self):
+        return "(" + str(self.s) + ", " + str(self.t) + ")"
+
+    def display(self, screen):
+        pygame.draw.line(screen, background_color,
+                        (self.s.x, self.s.y), (self.t.x, self.t.y),
+                         int(self.weight/2)+3)
+        pygame.draw.line(screen, self.color,
+                        (self.s.x, self.s.y), (self.t.x, self.t.y),
+                         int(self.weight/2))
+
+
+class Vertex():
+    def __init__(self):
+        self.x = random.choice(range(width))
+        self.y = random.choice(range(height))
+        self.dx = int(random.random() * 100)
+        self.dy = int(random.random() * 100)
+        self.color = vertex_color
+        self.border_color = vertex_boarder_color
+        self.thickness = 0
+        self.degree = 0
+        self.size = 30
+        self.name = str(self.size)
+        if self.name is None:
+            self.name = str(random.choice([v for v in range(100)]))
+
+    def __str__(self):
+        return "(" + str(self.x) + ", " + str(self.y) + ")"
+
+    def display(self, screen):
+        #fill
+        pygame.draw.circle(screen, self.border_color, (
+            int(self.x), int(self.y)), self.size * view_size_scaler + 3)
+        #outline
+        pygame.draw.circle(screen, self.color, (
+            int(self.x), int(self.y)), self.size * view_size_scaler,
+                                                 self.thickness)
+        fontObj = pygame.font.Font(None, max(self.size, 12))
+        label = fontObj.render(self.name, False, word_color)
+        screen.blit(label, (self.x - label.get_width() / 2,
+                            self.y - label.get_height() / 2))
+
+    def move(self):
+        self.x -= self.dx
+        self.y -= self.dy
 
 if __name__ == "__main__":
     launch_graph_plot()
